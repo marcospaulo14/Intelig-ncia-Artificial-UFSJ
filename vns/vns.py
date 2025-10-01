@@ -1,11 +1,16 @@
 import random
-from grafos import Grafo
+from problems.grafos import Grafo
+from problems.maquinas import Maquina, Tarefa
 
 class VNS:
     def __init__(self, grafo: Grafo):
         self.grafo = grafo
         self.matriz = grafo.matriz_adj
         self.n = grafo.n
+
+    def gera_solucao_maquinas(self, maquinas):
+        for maquina in maquinas:
+            
 
     def gera_solucao_inicial(self):
         solucao = list(range(self.n))
