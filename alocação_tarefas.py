@@ -24,6 +24,10 @@ class VNS:
         self.melhor_solucao = None
         self.melhor_tempo = float('inf')
         
+        self.contagem_movimentos = 0
+        self.contagem_trocas = 0
+        self.tempo_ultima_execucao = 0
+        
     def solucao_inicial(self):
         return [random.randint(0, self.n_maquinas - 1) for _ in self.tarefas]
     
@@ -63,6 +67,7 @@ class VNS:
         print(f"\n{'='*50}")
         print(f"\033[1mMelhor solução encontrada\033[0m")
         print(f"\033[1mTempo total: {self.tempo(solucao)}\033[0m")
+        print(f"\033[1mTempo de execução da solução: {self.tempo_ultima_execucao:.4f}s\033[0m")
         print(f"{'='*50}")
 
         for m, tarefas in maquinas_tarefas.items():
@@ -77,15 +82,67 @@ class VNS:
         nova = solucao[:]
         i = random.randint(0, len(nova) - 1)
         nova[i] = random.randint(0, self.n_maquinas - 1)
+        self.contagem_movimentos += 1
         return nova
     
     def trocar_tarefas(self, solucao):
         nova = solucao[:]
         i, j = random.sample(range(len(nova)), 2)
         nova[i], nova[j] = nova[j], nova[i]
+        self.contagem_trocas += 1
         return nova
+      
+    def obtem_vizinho_melhorado(self, solucao, k):
+      melhor_atual = solucao
+      for i in range(0, 100):
+        candidato = self.mover_tarefa(melhor_atual)
+        for i in range(1, k):
+          candidato = self.mover_tarefa(candidato)
+        if self.tempo(candidato) <= self.tempo(melhor_atual):
+          melhor_atual = candidato
+      return melhor_atual
+    
+    def vnd(self, solucao, r):
+      s = solucao[:]
+      while True:
+        k = 1
+        s_aux = s[:]
+        for i in range(0, r):
+          candidato = self.obtem_vizinho_melhorado(s, k) #Busca aleatória de um vizinho melhorado pertencente à vizinhança de ordem k
+          if (self.tempo(candidato) < self.tempo(s)):
+            s = candidato
+          else:
+            k += 1
+        if (self.tempo(s_aux) >= self.tempo(s)):
+          break
+      return s
+      
+    def vns(self, max_iter=100, max_r=3):
+      tempo_inicio = time.perf_counter()
+      
+      solucao = self.solucao_inicial()
+      self.melhor_solucao = solucao[:]
+      self.melhor_tempo = self.tempo(solucao)
+      
+      for _ in range(max_iter): #Critério de parada é o limite de iterações
+        k = 1
+        for i in range(k, max_r):  
+          vizinho = solucao[:]
+          for _ in range(0, k):
+            vizinho = self.mover_tarefa(vizinho)
+          candidato = self.vnd(vizinho, max_r) #vnd aplicado a elemento da vizinhança de ordem k
+          if self.tempo(candidato) < self.melhor_tempo:
+            self.melhor_solucao = candidato
+            self.melhor_tempo = self.tempo(candidato)
+          else:
+            k += 1
+      
+      tempo_fim = time.perf_counter()
+      self.tempo_ultima_execucao = tempo_fim - tempo_inicio
     
     def run(self, max_iter=10000):
+        tempo_inicio = time.perf_counter()
+        
         solucao = self.solucao_inicial()
         self.melhor_solucao = solucao
         self.melhor_tempo = self.tempo(solucao)
@@ -101,6 +158,9 @@ class VNS:
             if tempo_candidato < self.melhor_tempo:
                 self.melhor_solucao = candidato
                 self.melhor_tempo = tempo_candidato
+        
+        tempo_fim = time.perf_counter()
+        self.tempo_ultima_execucao = tempo_fim - tempo_inicio
     
 def ler_tarefas(caminho_arquivo):
     tarefas = []
@@ -143,7 +203,7 @@ if __name__ == "__main__":
     maquinas = [100] * 5
     print(f"\nPROBLEMA FACIL")
     vns = VNS(tarefas, maquinas)
-    vns.run()
+    vns.vns(5)
     vns.print_solucao()
 
     #MEDIO
@@ -153,7 +213,7 @@ if __name__ == "__main__":
     maquinas = ler_maquinas(caminho_arquivo)
     print(f"\nPROBLEMA MEDIO")
     vns = VNS(tarefas, maquinas)
-    vns.run()
+    vns.vns(5)
     vns.print_solucao()
 
     #DIFICIL
@@ -162,5 +222,5 @@ if __name__ == "__main__":
     maquinas = [100] * 5
     print(f"\nPROBLEMA DIFICIL")
     vns = VNS(tarefas, maquinas)
-    vns.run()
+    vns.vns(5)
     vns.print_solucao()
