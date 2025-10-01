@@ -1,6 +1,7 @@
-
+import pandas
 class Tarefa:
-    def __init__(self, tempo, requisitos=None):
+    def __init__(self, id, tempo, requisitos=None):
+        self.id = id
         self.tempo = tempo
         self.requisitos = requisitos if requisitos else []
     
@@ -17,4 +18,9 @@ class Maquina:
 
 
 if __name__ == "__main__":
-    OpenCNS.read_csv('data.csv')
+    df = pandas.read_csv('tarefas.csv')
+    column_id = df["ID_Tarefa"]
+    column_time = df["Tempo_Processamento"]
+    lista_tarefas = []
+    for i in range (0, len(column_id)-1):
+      lista_tarefas.append(Tarefa(column_id[i], column_time[i]))
