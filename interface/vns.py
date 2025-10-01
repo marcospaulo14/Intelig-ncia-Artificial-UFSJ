@@ -1,12 +1,12 @@
 import random
-from grafos import Grafo
-from maquinas import Maquina, Tarefa
+from .maquinas import Maquina, Tarefa
+from typing import List
 
 class VNS:
     def __init__(self):
         pass
 
-    def gera_solucao_maquinas(self, maquinas, tarefas):
+    def gera_solucao_maquinas(self, maquinas, tarefas) -> List[Maquina]:
         i = 0
         for maquina in maquinas:
             maquina.tarefas = tarefas[i::len(maquinas)-1]
